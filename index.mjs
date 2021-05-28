@@ -9,17 +9,20 @@ const options = {
 
 var stream = fs.createWriteStream("append.csv", { flags: 'a' });
 
-const job = schedule.scheduleJob('*/5 * * * *', async () => {
+const job = schedule.scheduleJob('*/30 * * * *', async () => {
+//{const job = schedule.scheduleJob('* * * * *', async () => {
   let mpbs = 0;
+  let lat = null;
   try {
     console.log(`starting at ${new Date().toISOString()}`);
-    const { download } = await speedTest(options);
+    const { download, ping : { latency} } = await speedTest(options);
+    lat = latency;
     mpbs = (download?.bandwidth / 1024 / 1024) * 8;
-    console.log(`Speed was ${mpbs}`);
+    console.log(`Speed was ${mpbs}, latency was ${latency}`);
   } catch (err) {
     console.log(err.message);
   }
-  stream.write(`${new Date().toISOString()},${mpbs}\n`);
+  stream.write(`${new Date().toISOString()},${mpbs},${lat}\n`);
 })
 
 process.on('SIGINT', () => {
